@@ -2,24 +2,42 @@
 <odoo>
     <data>
 
+        <record id="odoo_test.purchase_order_user_id_form_inherit" model="ir.ui.view">
+            <field name="name">purchase.order.user_id.form.inherit</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.view_purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='date_order']" position="before">
+                    <field name="user_id"/>
+                </xpath>
+                <xpath expr="//field[@name='user_id']" position="attributes">
+                    <attribute name="domain">[('groups_id', 'in', [ref('purchase.group_purchase_manager')])]</attribute>
+                </xpath>
+            </field>
+        </record>
+
         <record id="to_approve_purchase_tree" model="ir.ui.view">
-            <field name="name">To approve purchase tee</field>
+            <field name="name">To approve purchase tree</field>
             <field name="model">purchase.order</field>
             <field name="arch" type="xml">
                 <tree string="Purchase to approve" js_class="purchase_approve_all_list_view">
+                    <header>
+                        <button name="button_cancel" string="Cancel" type="object" class="oe_highlight" confirm="Are you sure you want to cancel this order?"/>
+                    </header>
                     <field name="name"/>
                     <field name="partner_id"/>
                     <field name="create_uid"/>
                     <field name="date_order"/>
                     <field name="date_planned"/>
                     <field name="payment_term_id"/>
-                    <field name="amount_total"/>
+                    <field name="amount_total" sum="Total"/>
+                    <button name="button_cancel" type="object" string="Cancel" icon="fa-times"/>
                 </tree>
             </field>
         </record>
 
         <record id="purchase_to_approve_action" model="ir.actions.act_window">
-            <field name="name">To approve</field>
+            <field name="name">To Approve</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">purchase.order</field>
             <field name="view_mode">tree,form</field>
