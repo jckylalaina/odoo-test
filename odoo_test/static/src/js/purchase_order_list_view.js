@@ -1,26 +1,22 @@
 /** @odoo-module */
 
-import { ListController } from "@web/views/list/list_controller";
+import { ListController } from '@web/views/list/list_controller';
 import { useService } from '@web/core/utils/hooks';
-import { listView } from "@web/views/list/list_view";
-import { registry } from "@web/core/registry";
+import { registry } from '@web/core/registry';
+import { ActionManager } from 'web.ActionManager';
 
-odoo.define('purchase_approval', function (require) {
-    "use strict";
+const PurchaseOrderListController = ListController.extend({
+    events: {
+        'click .oe_button_all_approve': '_onClickApproveAll',
+    },
 
-    var ListView = require('web.ListView');
-    var ActionManager = require('web.ActionManager');
+    _onClickApproveAll: function () {
+        var self = this;
+        var ids = this.$el.find('input[name="id"]:checked').map(function () {
+            return $(this).val();
+        }).get();
 
-    var PurchaseOrderListView = ListView.extend({
-        events: {
-            'click .oe_button_all_approve': '_onClickApproveAll',
-        },
-        
-        _onClickApproveAll: function () {
-            var self = this;
-            var ids = this.$el.find('input[name="id"]:checked').map(function () {
-                return $(this).val();
-            }).get();
+        if (ids.length > 0) {
             self._rpc({
                 model: 'purchase.order',
                 method: 'action_approve_all',
@@ -28,17 +24,19 @@ odoo.define('purchase_approval', function (require) {
             }).then(function () {
                 self.reload();
             });
-        },
-    });
-
-    ActionManager.include({
-        _executeAction: function (action) {
-            if (action.type === 'ir.actions.act_window') {
-                if (action.res_model === 'purchase.order') {
-                    return new PurchaseOrderListView(action);
-                }
-            }
-            return this._super(action);
+        } else {
+            alert("Please select at least one order to approve.");
         }
-    });
+    },
+});
+
+registry.category('views').add('purchase_order_list', PurchaseOrderListController);
+
+ActionManager.include({
+    _executeAction: function (action) {
+        if (action.type === 'ir.actions.act_window' && action.res_model === 'purchase.order') {
+            return new PurchaseOrderListController(action);
+        }
+        return this._super(action);
+    }
 });
